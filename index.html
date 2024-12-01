@@ -4,30 +4,22 @@
     <meta charset="UTF-8">
     <title>Expense Tracker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Simple expense tracking application">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
         .form-control, .form-select, .btn {
-            padding: 0.5rem 0.75rem;
             min-height: 46px;
         }
         textarea.form-control {
             resize: none;
             height: 46px;
-            overflow-y: auto;
-        }
-        .form-label {
-            color: #212529;
-            font-weight: 500;
         }
     </style>
 </head>
-<body>
-    <div class="container-sm py-4" style="max-width: 540px">
+<body class="bg-light">
+    <main class="container-sm py-4" style="max-width: 540px">
         <h1 class="h3 mb-3 fw-bold">Add New Expense</h1>
-        <form id="dataForm">
+        <form id="dataForm" autocomplete="off" novalidate>
             <div class="mb-3">
                 <label for="date" class="form-label">Date</label>
                 <input type="date" class="form-control" id="date" name="date" required>
@@ -75,115 +67,137 @@
                 </div>
             </div>
         </form>
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Initialize with today's date
-        document.getElementById('date').valueAsDate = new Date();
+        // Database configuration
+        const DB_NAME = 'ExpenseTrackerDB';
+        const DB_VERSION = 2;
+        const STORE_NAME = 'expenses';
 
-        // IndexedDB setup
+        // Initialize database connection
         let db;
-        const request = indexedDB.open('ExpenseTrackerDB', 2);
+        
+        async function initDB() {
+            try {
+                db = await new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+                    
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (db.objectStoreNames.contains(STORE_NAME)) {
+                            db.deleteObjectStore(STORE_NAME);
+                        }
+                        const store = db.createObjectStore(STORE_NAME, { 
+                            keyPath: 'id', 
+                            autoIncrement: true 
+                        });
+                        ['date', 'amount', 'description', 'category', 'notes']
+                            .forEach(field => store.createIndex(field, field));
+                    };
 
-        // Database initialization and schema setup
-        request.onupgradeneeded = function(event) {
-            db = event.target.result;
-            if (db.objectStoreNames.contains('expenses')) {
-                db.deleteObjectStore('expenses');
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+
+                // Set today's date
+                document.getElementById('date').valueAsDate = new Date();
+            } catch (error) {
+                console.error('Database initialization failed:', error);
+                alert('Failed to initialize application. Please refresh the page.');
             }
-            const objectStore = db.createObjectStore('expenses', { keyPath: 'id', autoIncrement: true });
-            ['date', 'amount', 'description', 'category', 'notes'].forEach(field => {
-                objectStore.createIndex(field, field, { unique: false });
-            });
-        };
-
-        request.onsuccess = event => db = event.target.result;
-        request.onerror = event => console.error('Database error:', event.target.errorCode);
+        }
 
         // Form submission handler
-        document.getElementById('dataForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            const form = event.target;
             const formData = {
-                date: document.getElementById('date').value,
-                amount: document.getElementById('amount').value,
-                description: document.getElementById('description').value,
-                category: document.getElementById('category').value,
-                notes: document.getElementById('notes').value
+                date: form.date.value,
+                amount: Number(form.amount.value),
+                description: form.description.value.trim(),
+                category: form.category.value,
+                notes: form.notes.value.trim()
             };
 
-            const transaction = db.transaction(['expenses'], 'readwrite');
-            const request = transaction.objectStore('expenses').add(formData);
+            try {
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const request = transaction.objectStore(STORE_NAME).add(formData);
+                    
+                    transaction.oncomplete = () => resolve();
+                    transaction.onerror = () => reject(transaction.error);
+                });
 
-            request.onsuccess = () => {
-                alert('Expense saved.');
-                this.reset();
+                form.reset();
                 document.getElementById('date').valueAsDate = new Date();
-            };
-            request.onerror = event => {
-                console.error('Error saving expense:', event.target.error);
-                alert('Could not save expense.');
-            };
-        });
+                alert('Expense saved successfully.');
+            } catch (error) {
+                console.error('Save failed:', error);
+                alert('Failed to save expense. Please try again.');
+            }
+        }
 
-        // Data clearing handler
-        document.getElementById('clearBtn').addEventListener('click', function() {
-            if (!confirm('Delete all expenses? This cannot be undone.')) return;
+        // Data export handler
+        async function exportData() {
+            try {
+                const data = await new Promise((resolve, reject) => {
+                    const transaction = db.transaction([STORE_NAME], 'readonly');
+                    const request = transaction.objectStore(STORE_NAME).getAll();
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
 
-            const request = db.transaction(['expenses'], 'readwrite')
-                            .objectStore('expenses')
-                            .clear();
-
-            request.onsuccess = () => alert('All expenses deleted.');
-            request.onerror = event => {
-                console.error('Error clearing expenses:', event.target.error);
-                alert('Could not delete expenses.');
-            };
-        });
-
-        // CSV export handler
-        document.getElementById('exportBtn').addEventListener('click', function() {
-            const request = db.transaction(['expenses'], 'readonly')
-                            .objectStore('expenses')
-                            .getAll();
-
-            request.onsuccess = function(event) {
-                const data = event.target.result;
-                if (data.length === 0) {
+                if (!data.length) {
                     alert('No expenses to export.');
                     return;
                 }
 
-                // Create CSV content
                 const headers = ['Date', 'Amount', 'Description', 'Category', 'Notes'];
                 const csvContent = [
                     headers.join(','),
-                    ...data.map(entry => [
-                        entry.date,
-                        entry.amount,
-                        entry.description.replace(/"/g, '""'),
-                        entry.category,
-                        entry.notes.replace(/"/g, '""')
-                    ].map(field => `"${field}"`).join(','))
+                    ...data.map(entry => Object.values(entry)
+                        .slice(1) // Remove ID field
+                        .map(field => `"${String(field).replace(/"/g, '""')}"`)
+                        .join(','))
                 ].join('\n');
 
-                // Trigger download
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'expenses.csv';
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `expenses-${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
                 URL.revokeObjectURL(url);
-            };
+            } catch (error) {
+                console.error('Export failed:', error);
+                alert('Failed to export expenses. Please try again.');
+            }
+        }
 
-            request.onerror = event => {
-                console.error('Error exporting expenses:', event.target.error);
-                alert('Could not export expenses.');
-            };
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', initDB);
+        document.getElementById('dataForm').addEventListener('submit', handleSubmit);
+        document.getElementById('exportBtn').addEventListener('click', exportData);
+        document.getElementById('clearBtn').addEventListener('click', async () => {
+            if (!confirm('Delete all expenses? This cannot be undone.')) return;
+            
+            try {
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const request = transaction.objectStore(STORE_NAME).clear();
+                    
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+                alert('All expenses deleted.');
+            } catch (error) {
+                console.error('Clear failed:', error);
+                alert('Failed to clear expenses. Please try again.');
+            }
         });
     </script>
 </body>
