@@ -158,10 +158,14 @@
                 const headers = ['Date', 'Amount', 'Description', 'Category', 'Notes'];
                 const csvContent = [
                     headers.join(','),
-                    ...data.map(entry => Object.values(entry)
-                        .slice(1) // Remove ID field
-                        .map(field => `"${String(field).replace(/"/g, '""')}"`)
-                        .join(','))
+                    ...data.map(entry => [
+                        entry.date,
+                        entry.amount,
+                        entry.description,
+                        entry.category,
+                        entry.notes
+                    ].map(field => `"${String(field).replace(/"/g, '""')}"`)
+                    .join(','))
                 ].join('\n');
 
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
