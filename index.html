@@ -144,7 +144,7 @@
                                 <tr>
                                     <th style="width: 40px"></th>
                                     <th>Date</th>
-                                    <th class="amount">Amount</th>
+                                    <th>Amount</th>
                                     <th>Description</th>
                                     <th>Category</th>
                                     <th>Notes</th>
@@ -314,7 +314,7 @@
                             </button>
                         </td>
                         <td>${new Date(expense.date).toLocaleDateString()}</td>
-                        <td>$${expense.amount.toFixed(2)}</td>
+                        <td class="amount">$${expense.amount.toFixed(2)}</td>
                         <td class="truncate truncate-description">${expense.description}</td>
                         <td>${expense.category}</td>
                         <td class="truncate truncate-notes">${expense.notes || ''}</td>
