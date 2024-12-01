@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Expense Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Base styles -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .form-container {
+            max-width: 500px;
+            margin: auto;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        /* Form field styles */
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+            font-family: monospace;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        /* Button styles */
+        input[type="submit"],
+        button {
+            margin-top: 20px;
+            padding: 12px;
+            width: 100%;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover,
+        button:hover {
+            background-color: #218838;
+        }
+        /* Currency input specific styles */
+        .currency-container {
+            position: relative;
+        }
+        .currency-container input[type="number"] {
+            padding-left: 25px;
+        }
+        .currency-container::before {
+            content: '$';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            font-family: monospace;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        /* Hide number input spinners */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            appearance: textfield;
+        }
+        /* Custom select styling */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            padding-right: 40px;
+            background-color: white;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        select:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+        /* Focus states */
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+    </style>
+</head>
+<body>
+    <!-- Main form container -->
+    <div class="form-container">
+        <form id="dataForm">
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" required>
+
+            <label for="amount">Amount</label>
+            <div class="currency-container">
+                <input type="number" id="amount" name="amount" step="1" placeholder="" required>
+            </div>
+
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="4" placeholder="" required></textarea>
+
+            <label for="category">Category</label>
+            <select id="category" name="category" required>
+                <option value="" disabled selected></option>
+                <option value="Car">Car</option>
+                <option value="Everyday">Everyday</option>
+                <option value="Groceries">Groceries</option>
+                <option value="One-Off">One-Off</option>
+                <option value="Rent">Rent</option>
+                <option value="Restaurants">Restaurants</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Subscriptions">Subscriptions</option>
+                <option value="Travel">Travel</option>
+            </select>
+
+            <label for="notes">Notes (Optional)</label>
+            <textarea id="notes" name="notes" rows="4" placeholder=""></textarea>
+
+            <input type="submit" value="Save">
+        </form>
+
+        <div class="button-container">
+            <button id="clearBtn">Clear Data</button>
+            <button id="exportBtn">Download Data</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize with today's date
+        document.getElementById('date').valueAsDate = new Date();
+
+        // IndexedDB setup
+        let db;
+        const request = indexedDB.open('ExpenseTrackerDB', 2);
+
+        // Database initialization and schema setup
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            if (db.objectStoreNames.contains('expenses')) {
+                db.deleteObjectStore('expenses');
+            }
+            const objectStore = db.createObjectStore('expenses', { keyPath: 'id', autoIncrement: true });
+            ['date', 'amount', 'description', 'category', 'notes'].forEach(field => {
+                objectStore.createIndex(field, field, { unique: false });
+            });
+        };
+
+        request.onsuccess = event => db = event.target.result;
+        request.onerror = event => console.error('Database error:', event.target.errorCode);
+
+        // Form submission handler
+        document.getElementById('dataForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = {
+                date: document.getElementById('date').value,
+                amount: document.getElementById('amount').value,
+                description: document.getElementById('description').value,
+                category: document.getElementById('category').value,
+                notes: document.getElementById('notes').value
+            };
+
+            const transaction = db.transaction(['expenses'], 'readwrite');
+            const request = transaction.objectStore('expenses').add(formData);
+
+            request.onsuccess = () => {
+                alert('Expense saved.');
+                this.reset();
+                document.getElementById('date').valueAsDate = new Date();
+            };
+            request.onerror = event => {
+                console.error('Error saving expense:', event.target.error);
+                alert('Could not save expense.');
+            };
+        });
+
+        // Data clearing handler
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            if (!confirm('Delete all expenses? This cannot be undone.')) return;
+
+            const request = db.transaction(['expenses'], 'readwrite')
+                            .objectStore('expenses')
+                            .clear();
+
+            request.onsuccess = () => alert('All expenses deleted.');
+            request.onerror = event => {
+                console.error('Error clearing expenses:', event.target.error);
+                alert('Could not delete expenses.');
+            };
+        });
+
+        // CSV export handler
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const request = db.transaction(['expenses'], 'readonly')
+                            .objectStore('expenses')
+                            .getAll();
+
+            request.onsuccess = function(event) {
+                const data = event.target.result;
+                if (data.length === 0) {
+                    alert('No expenses to export.');
+                    return;
+                }
+
+                // Create CSV content
+                const headers = ['Date', 'Amount', 'Description', 'Category', 'Notes'];
+                const csvContent = [
+                    headers.join(','),
+                    ...data.map(entry => [
+                        entry.date,
+                        entry.amount,
+                        entry.description.replace(/"/g, '""'),
+                        entry.category,
+                        entry.notes.replace(/"/g, '""')
+                    ].map(field => `"${field}"`).join(','))
+                ].join('\n');
+
+                // Trigger download
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'expenses.csv';
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+
+            request.onerror = event => {
+                console.error('Error exporting expenses:', event.target.error);
+                alert('Could not export expenses.');
+            };
+        });
+    </script>
+</body>
+</html>
