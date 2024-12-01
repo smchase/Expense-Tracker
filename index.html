@@ -13,12 +13,16 @@
             max-width: 500px;
             margin: auto;
         }
+        h1 {
+            margin: 0 0 24px;
+            font-size: 24px;
+        }
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: bold;
         }
-        input, select, textarea, button, input[type="submit"] {
+        input, select, textarea, button {
             width: 100%;
             padding: 8px;
             margin-bottom: 16px;
@@ -26,28 +30,21 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 16px;
-            height: 36px;
-        }
-        input[type="date"] {
-            width: 100%;
-            margin-bottom: 16px;
-            display: block;
         }
         button, input[type="submit"] {
             border: none;
             cursor: pointer;
-            font-weight: normal;
         }
         input[type="submit"] {
             background-color: #28a745;
             color: white;
         }
+        input[type="submit"]:hover {
+            background-color: #218838;
+        }
         button {
             background-color: #e9ecef;
             color: #212529;
-        }
-        input[type="submit"]:hover {
-            background-color: #218838;
         }
         button:hover {
             background-color: #dde2e6;
@@ -55,10 +52,6 @@
         .button-container {
             display: flex;
             gap: 16px;
-        }
-        h1 {
-            margin: 0 0 24px 0;
-            font-size: 24px;
         }
     </style>
 </head>
