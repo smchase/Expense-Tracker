@@ -18,6 +18,20 @@
         .btn {
             padding: 0.75rem 0.75rem;
         }
+        .amount-wrapper {
+            position: relative;
+        }
+        .amount-wrapper:before {
+            content: '$';
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+        .amount-wrapper input {
+            padding-left: 1.75rem;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -31,7 +45,9 @@
 
             <div class="mb-3">
                 <label for="amount" class="form-label">Amount</label>
-                <input type="number" class="form-control" id="amount" name="amount" step="0.01" inputmode="decimal" required>
+                <div class="amount-wrapper">
+                    <input type="number" class="form-control" id="amount" name="amount" step="0.01" inputmode="decimal" required>
+                </div>
             </div>
 
             <div class="mb-3">
@@ -120,7 +136,7 @@
             const form = event.target;
             const formData = {
                 date: form.date.value,
-                amount: Number(form.amount.value),
+                amount: Number(parseFloat(form.amount.value).toFixed(2)),
                 description: form.description.value.trim(),
                 category: form.category.value,
                 notes: form.notes.value.trim()
@@ -185,6 +201,13 @@
                 alert('Failed to export expenses. Please try again.');
             }
         }
+
+        // Add amount input formatting
+        document.getElementById('amount').addEventListener('change', function(e) {
+            if (this.value) {
+                this.value = parseFloat(this.value).toFixed(2);
+            }
+        });
 
         // Initialize application
         document.addEventListener('DOMContentLoaded', initDB);
