@@ -34,24 +34,38 @@
             width: 100%;
         }
         button, input[type="submit"] {
-            background-color: #28a745;
-            color: white;
             border: none;
             cursor: pointer;
             font-weight: normal;
         }
-        button:hover, input[type="submit"]:hover {
+        input[type="submit"] {
+            background-color: #28a745;
+            color: white;
+        }
+        button {
+            background-color: #e9ecef;
+            color: #212529;
+        }
+        input[type="submit"]:hover {
             background-color: #218838;
+        }
+        button:hover {
+            background-color: #dde2e6;
         }
         .button-container {
             display: flex;
             gap: 16px;
+        }
+        h1 {
+            margin: 0 0 24px 0;
+            font-size: 24px;
         }
     </style>
 </head>
 <body>
     <!-- Main form container -->
     <div class="form-container">
+        <h1>Add New Expense</h1>
         <form id="dataForm">
             <label for="date">Date</label>
             <input type="date" id="date" name="date" required>
