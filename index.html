@@ -56,6 +56,16 @@
             opacity: 1;
             color: #dc3545;
         }
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .truncate-description {
+            max-width: 200px;
+        }
+        .truncate-notes {
+            max-width: 300px;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -114,7 +124,7 @@
                     </button>
                 </div>
                 <div class="col-4">
-                    <button type="button" id="exportBtn" class="btn btn-outline-secondary w-100">Download Expenses</button>
+                    <button type="button" id="exportBtn" class="btn btn-outline-secondary w-100">Download CSV</button>
                 </div>
             </div>
         </form>
@@ -135,9 +145,9 @@
                                 <tr>
                                     <th style="width: 40px"></th>
                                     <th>Date</th>
+                                    <th class="amount">Amount</th>
                                     <th>Description</th>
                                     <th>Category</th>
-                                    <th class="amount">Amount</th>
                                     <th>Notes</th>
                                 </tr>
                             </thead>
@@ -319,10 +329,10 @@
                             </button>
                         </td>
                         <td>${new Date(expense.date).toLocaleDateString()}</td>
-                        <td>${expense.description}</td>
+                        <td>$${expense.amount.toFixed(2)}</td>
+                        <td class="truncate truncate-description">${expense.description}</td>
                         <td>${expense.category}</td>
-                        <td class="amount">$${expense.amount.toFixed(2)}</td>
-                        <td>${expense.notes || ''}</td>
+                        <td class="truncate truncate-notes">${expense.notes || ''}</td>
                     </tr>
                 `).join('');
 
