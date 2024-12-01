@@ -33,7 +33,31 @@
             font-family: monospace;
             border: 1px solid #ced4da;
             border-radius: 4px;
+            background-color: white;
+            -webkit-appearance: none;
         }
+        
+        /* iOS date input specific fixes */
+        input[type="date"] {
+            position: relative;
+            min-height: 42px;
+            display: block;
+        }
+        @supports (-webkit-touch-callout: none) {
+            input[type="date"]::-webkit-date-and-time-value {
+                min-height: 1.5em;
+            }
+            input[type="date"]::before {
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                content: "📅";
+                width: 20px;
+                text-align: center;
+            }
+        }
+        
         /* Button styles */
         button {
             margin-top: 20px;
@@ -120,7 +144,7 @@
 
             <label for="amount">Amount</label>
             <div class="currency-container">
-                <input type="number" id="amount" name="amount" step="1" placeholder="" required>
+                <input type="number" id="amount" name="amount" step="0.01" placeholder="" required inputmode="numeric" pattern="[0-9]*">
             </div>
 
             <label for="description">Description</label>
