@@ -4,103 +4,64 @@
     <meta charset="UTF-8">
     <title>Expense Tracker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .form-container {
-            max-width: 500px;
-            margin: auto;
-        }
-        h1 {
-            margin: 0 0 24px;
-            font-size: 24px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        input, select, textarea, button {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 16px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        button, input[type="submit"] {
-            border: none;
-            cursor: pointer;
-        }
-        input[type="submit"] {
-            background-color: #28a745;
-            color: white;
-        }
-        input[type="submit"]:hover {
-            background-color: #218838;
-        }
-        button {
-            background-color: #e9ecef;
-            color: #212529;
-        }
-        button:hover {
-            background-color: #dde2e6;
-        }
-        .button-container {
-            display: flex;
-            gap: 16px;
+        textarea {
+            resize: vertical;
+            min-height: 38px;
         }
     </style>
 </head>
 <body>
-    <!-- Main form container -->
-    <div class="form-container">
-        <h1>Add New Expense</h1>
+    <div class="container-sm py-4" style="max-width: 540px">
+        <h1 class="h4 mb-4">Add New Expense</h1>
         <form id="dataForm">
-            <label for="date">Date</label>
-            <input type="date" id="date" name="date" required>
+            <div class="mb-3">
+                <label for="date" class="form-label">Date</label>
+                <input type="date" class="form-control" id="date" name="date" required>
+            </div>
 
-            <label for="amount">Amount</label>
-            <input type="number" 
-                   id="amount" 
-                   name="amount" 
-                   step="0.01" 
-                   inputmode="decimal"
-                   placeholder="" 
-                   required>
+            <div class="mb-3">
+                <label for="amount" class="form-label">Amount</label>
+                <input type="number" class="form-control" id="amount" name="amount" step="0.01" inputmode="decimal" required>
+            </div>
 
-            <label for="description">Description</label>
-            <textarea id="description" name="description" placeholder="" required></textarea>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" required></textarea>
+            </div>
 
-            <label for="category">Category</label>
-            <select id="category" name="category" required>
-                <option value="" disabled selected></option>
-                <option value="Car">Car</option>
-                <option value="Everyday">Everyday</option>
-                <option value="Groceries">Groceries</option>
-                <option value="One-Off">One-Off</option>
-                <option value="Rent">Rent</option>
-                <option value="Restaurants">Restaurants</option>
-                <option value="Shopping">Shopping</option>
-                <option value="Subscriptions">Subscriptions</option>
-                <option value="Travel">Travel</option>
-            </select>
+            <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" name="category" required>
+                    <option value="" disabled selected></option>
+                    <option value="Car">Car</option>
+                    <option value="Everyday">Everyday</option>
+                    <option value="Groceries">Groceries</option>
+                    <option value="One-Off">One-Off</option>
+                    <option value="Rent">Rent</option>
+                    <option value="Restaurants">Restaurants</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Subscriptions">Subscriptions</option>
+                    <option value="Travel">Travel</option>
+                </select>
+            </div>
 
-            <label for="notes">Notes (Optional)</label>
-            <textarea id="notes" name="notes" placeholder=""></textarea>
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notes (Optional)</label>
+                <textarea class="form-control" id="notes" name="notes"></textarea>
+            </div>
 
-            <input type="submit" value="Save">
+            <button type="submit" class="btn btn-primary w-100 mb-3">Save</button>
+
+            <div class="d-flex gap-2">
+                <button type="button" id="clearBtn" class="btn btn-outline-secondary flex-grow-1">Clear Data</button>
+                <button type="button" id="exportBtn" class="btn btn-outline-secondary flex-grow-1">Download Data</button>
+            </div>
         </form>
-
-        <div class="button-container">
-            <button id="clearBtn">Clear Data</button>
-            <button id="exportBtn">Download Data</button>
-        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Initialize with today's date
         document.getElementById('date').valueAsDate = new Date();
