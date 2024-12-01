@@ -9,12 +9,14 @@
         body {
             background-color: #f8f9fa;
         }
-        textarea {
-            resize: vertical;
-            min-height: 38px;
+        .form-control, .form-select, .btn {
+            padding: 0.5rem 0.75rem;
+            min-height: 46px;
         }
-        .form-control, .form-select {
-            border-color: #dee2e6;
+        textarea.form-control {
+            resize: none;
+            height: 46px;
+            overflow-y: auto;
         }
         .form-label {
             color: #212529;
@@ -24,7 +26,7 @@
 </head>
 <body>
     <div class="container-sm py-4" style="max-width: 540px">
-        <h1 class="h4 mb-4 fw-bold">Add New Expense</h1>
+        <h1 class="h3 mb-4 fw-bold">Add New Expense</h1>
         <form id="dataForm">
             <div class="mb-3">
                 <label for="date" class="form-label">Date</label>
