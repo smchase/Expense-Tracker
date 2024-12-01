@@ -33,6 +33,35 @@
         .amount-wrapper input {
             padding-left: 1.75rem;
         }
+        .table {
+            font-size: 0.9rem;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        .amount {
+            text-align: right;
+        }
+        .delete-btn {
+            padding: 0;
+            line-height: 0.75;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #666;
+            background: none;
+            border: none;
+            opacity: 0.5;
+            transition: opacity 0.15s;
+        }
+        .delete-btn:hover {
+            opacity: 1;
+            color: #dc3545;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -81,17 +110,50 @@
 
             <div class="row g-3">
                 <div class="col-4">
-                    <button type="button" id="clearBtn" class="btn btn-outline-secondary w-100">Clear Data</button>
+                    <button type="button" id="clearBtn" class="btn btn-outline-secondary w-100">Clear Expenses</button>
                 </div>
                 <div class="col-4">
-                    <button type="button" id="exportBtn" class="btn btn-outline-secondary w-100">Download Data</button>
+                    <button type="button" class="btn btn-outline-secondary w-100" 
+                        data-bs-toggle="modal" data-bs-target="#viewExpensesModal" 
+                        onclick="loadExpenses()">
+                        View Expenses
+                    </button>
                 </div>
                 <div class="col-4">
-                    <a href="view.html" class="btn btn-outline-primary w-100">View Expenses</a>
+                    <button type="button" id="exportBtn" class="btn btn-outline-secondary w-100">Download Expenses</button>
                 </div>
             </div>
         </form>
     </main>
+
+    <!-- Add Modal -->
+    <div class="modal fade" id="viewExpensesModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Expenses</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px"></th>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th class="amount">Amount</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenseTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -212,6 +274,69 @@
                 this.value = parseFloat(this.value).toFixed(2);
             }
         });
+
+        async function deleteExpense(id) {
+            if (!confirm('Delete this expense?')) return;
+            
+            try {
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const request = transaction.objectStore(STORE_NAME).delete(id);
+                    transaction.oncomplete = () => resolve();
+                    transaction.onerror = () => reject(transaction.error);
+                });
+                await loadExpenses();
+            } catch (error) {
+                console.error('Delete failed:', error);
+                alert('Failed to delete expense. Please try again.');
+            }
+        }
+
+        async function loadExpenses() {
+            try {
+                const data = await new Promise((resolve, reject) => {
+                    const transaction = db.transaction([STORE_NAME], 'readonly');
+                    const request = transaction.objectStore(STORE_NAME).getAll();
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+
+                const tableBody = document.getElementById('expenseTable');
+                
+                if (!data.length) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                No expenses found
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                tableBody.innerHTML = data.map(expense => `
+                    <tr>
+                        <td class="text-center">
+                            <button onclick="deleteExpense(${expense.id})" 
+                                    class="delete-btn"
+                                    title="Delete expense">
+                                ×
+                            </button>
+                        </td>
+                        <td>${new Date(expense.date).toLocaleDateString()}</td>
+                        <td>${expense.description}</td>
+                        <td>${expense.category}</td>
+                        <td class="amount">$${expense.amount.toFixed(2)}</td>
+                        <td>${expense.notes || ''}</td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error('Failed to load expenses:', error);
+                alert('Failed to load expenses. Please try again.');
+            }
+        }
 
         // Initialize application
         document.addEventListener('DOMContentLoaded', initDB);
