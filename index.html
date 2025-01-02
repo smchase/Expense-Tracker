@@ -188,7 +188,7 @@
             
             const form = event.target;
             const formData = {
-                date: new Date(form.date.value).toISOString().split('T')[0],
+                date: form.date.value, // Use raw date string directly from input
                 amount: Number(parseFloat(form.amount.value).toFixed(2)),
                 description: form.description.value.trim(),
                 category: form.category.value,
@@ -299,7 +299,7 @@
                     return;
                 }
 
-                data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                data.sort((a, b) => a.date < b.date ? 1 : -1); // Sort by date string directly
                 tableBody.innerHTML = data.map(expense => `
                     <tr>
                         <td class="text-center">
@@ -309,7 +309,7 @@
                                 ×
                             </button>
                         </td>
-                        <td>${new Date(expense.date).toLocaleDateString()}</td>
+                        <td>${new Date(expense.date + 'T00:00:00').toLocaleDateString()}</td>
                         <td class="amount">$${expense.amount.toFixed(2)}</td>
                         <td class="truncate truncate-description">${expense.description}</td>
                         <td>${expense.category}</td>
