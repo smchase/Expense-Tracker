@@ -325,6 +325,19 @@
                     </tr>
                 `).join('');
 
+                // Calculate the total amount of all expenses
+                const total = data.reduce((sum, expense) => sum + expense.amount, 0);
+                
+                // Add a total row at the bottom of the table
+                tableBody.innerHTML += `
+                    <tr class="fw-bold border-top">
+                        <td></td>
+                        <td class="text-end">Total:</td>
+                        <td class="amount">$${total.toFixed(2)}</td>
+                        <td colspan="3"></td>
+                    </tr>
+                `;
+
             } catch (error) {
                 console.error('Failed to load expenses:', error);
                 alert('Failed to load expenses. Please try again.');
