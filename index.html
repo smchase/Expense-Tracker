@@ -161,6 +161,10 @@
         const STORE_NAME = 'expenses';
         let db;
 
+        function formatNumberWithCommas(number) {
+            return number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
         async function initDB() {
             try {
                 db = await new Promise((resolve, reject) => {
@@ -318,7 +322,7 @@
                             </button>
                         </td>
                         <td>${new Date(expense.date + 'T00:00:00').toLocaleDateString()}</td>
-                        <td class="amount">$${expense.amount.toFixed(2)}</td>
+                        <td class="amount">$${formatNumberWithCommas(expense.amount)}</td>
                         <td class="truncate truncate-description">${expense.description}</td>
                         <td>${expense.category}</td>
                         <td class="truncate truncate-notes">${expense.notes || ''}</td>
@@ -333,7 +337,7 @@
                     <tr class="fw-bold border-top">
                         <td></td>
                         <td class="text-end">Total:</td>
-                        <td class="amount">$${total.toFixed(2)}</td>
+                        <td class="amount">$${formatNumberWithCommas(total)}</td>
                         <td colspan="3"></td>
                     </tr>
                 `;
