@@ -306,6 +306,9 @@
                 const categoryBreakdown = document.getElementById('categoryBreakdown');
                 const categoryBreakdownContent = document.getElementById('categoryBreakdownContent');
                 
+                const urlParams = new URLSearchParams(window.location.search);
+                const showBreakdown = urlParams.get('breakdown') === 'true';
+                
                 if (!data.length) {
                     tableBody.innerHTML = `
                         <tr>
@@ -318,27 +321,31 @@
                     return;
                 }
 
-                const categoryTotals = {};
-                data.forEach(expense => {
-                    if (!categoryTotals[expense.category]) {
-                        categoryTotals[expense.category] = 0;
-                    }
-                    categoryTotals[expense.category] += expense.amount;
-                });
+                if (showBreakdown) {
+                    const categoryTotals = {};
+                    data.forEach(expense => {
+                        if (!categoryTotals[expense.category]) {
+                            categoryTotals[expense.category] = 0;
+                        }
+                        categoryTotals[expense.category] += expense.amount;
+                    });
 
-                const sortedCategories = Object.entries(categoryTotals)
-                    .sort(([,a], [,b]) => b - a);
+                    const sortedCategories = Object.entries(categoryTotals)
+                        .sort(([,a], [,b]) => b - a);
 
-                categoryBreakdownContent.innerHTML = sortedCategories.map(([category, total]) => `
-                    <div class="mb-2">
-                        <div class="d-flex justify-content-between">
-                            <span>${category}:</span>
-                            <span class="fw-bold">$${formatNumberWithCommas(total)}</span>
+                    categoryBreakdownContent.innerHTML = sortedCategories.map(([category, total]) => `
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>${category}:</span>
+                                <span class="fw-bold">$${formatNumberWithCommas(total)}</span>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `).join('');
 
-                categoryBreakdown.style.display = 'block';
+                    categoryBreakdown.style.display = 'block';
+                } else {
+                    categoryBreakdown.style.display = 'none';
+                }
 
                 data.sort((a, b) => a.date < b.date ? 1 : -1); // Sort by date string directly
                 tableBody.innerHTML = data.map(expense => `
