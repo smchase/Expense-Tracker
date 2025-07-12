@@ -149,6 +149,10 @@
                             <tbody id="expenseTable"></tbody>
                         </table>
                     </div>
+                    <div id="categoryBreakdown" class="mb-4" style="display: none;">
+                        <h5 class="modal-title fw-bold">Spending by Category</div>
+                        <div class="row" id="categoryBreakdownContent"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -299,6 +303,8 @@
                 });
 
                 const tableBody = document.getElementById('expenseTable');
+                const categoryBreakdown = document.getElementById('categoryBreakdown');
+                const categoryBreakdownContent = document.getElementById('categoryBreakdownContent');
                 
                 if (!data.length) {
                     tableBody.innerHTML = `
@@ -308,8 +314,31 @@
                             </td>
                         </tr>
                     `;
+                    categoryBreakdown.style.display = 'none';
                     return;
                 }
+
+                const categoryTotals = {};
+                data.forEach(expense => {
+                    if (!categoryTotals[expense.category]) {
+                        categoryTotals[expense.category] = 0;
+                    }
+                    categoryTotals[expense.category] += expense.amount;
+                });
+
+                const sortedCategories = Object.entries(categoryTotals)
+                    .sort(([,a], [,b]) => b - a);
+
+                categoryBreakdownContent.innerHTML = sortedCategories.map(([category, total]) => `
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>${category}:</span>
+                            <span class="fw-bold">$${formatNumberWithCommas(total)}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                categoryBreakdown.style.display = 'block';
 
                 data.sort((a, b) => a.date < b.date ? 1 : -1); // Sort by date string directly
                 tableBody.innerHTML = data.map(expense => `
